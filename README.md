@@ -1,4 +1,4 @@
-# loafing-reader
+# 摸鱼小说阅读器 loafing-reader
 油猴插件，内嵌浏览器里用来上班摸鱼看小说。
 
 ## 使用说明

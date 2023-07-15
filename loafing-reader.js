@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Loafing-Reader
+// @name         摸鱼小说阅读器 Loafing-Reader
 // @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  try to take over the world!
+// @description  内嵌浏览器里用来上班摸鱼看小说
 // @author       HanaYabuki
 // @match        *://*/*
 // @grant        GM_getValue
@@ -76,7 +76,7 @@
     elements.jump = create('span');
     elements.load = create('span');
     elements.move = create('span');
-    elements.info = create('span',);
+    elements.info = create('span');
     elements.fileholder = create('input');
     elements.text = create('div');
 
@@ -213,7 +213,7 @@
     elements.jump.addEventListener('click', function (e) {
         let value = prompt('跳转到？');
         value = parseInt(value);
-        if (value !== NaN && fileInfo.content && fileInfo.length >= value) {
+        if (!isNaN(value) && fileInfo.content && fileInfo.length >= value) {
             jump(value);
         }
     });
