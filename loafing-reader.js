@@ -19,7 +19,7 @@
         'panel': {
             height: '27em',
             width: '48em',
-            backgroundColor: '#aa0000',
+            backgroundColor: '#aa000000',
             top: '50%',
             left: '50%',
             zIndex: '10',
@@ -30,7 +30,7 @@
             userSelect: 'none',
         },
         'toolbar': {
-            backgroundColor: '#e7dec6',
+            backgroundColor: '#e7dec633',
             width: '100%',
             height: '18px',
         },
@@ -48,13 +48,13 @@
         },
         'content': {
             color: '#000000',
-            backgroundColor: '#f7eed6',
+            backgroundColor: '#f7eed633',
             flex: '1',
             padding: '0 0.5em',
             overflow: 'hidden',
         },
         'text': {
-            backgroundColor: '#ff000022',
+            backgroundColor: '#ff000000',
             position: 'relative',
         },
         'fileholder': {
