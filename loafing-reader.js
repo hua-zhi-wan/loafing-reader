@@ -7,78 +7,74 @@
 // @match        *://*/*
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_addStyle
 // ==/UserScript==
 (function () {
-    const css = {
-        '*': {
-            margin: '0',
-            padding: '0',
-            boxSizing: 'content-box',
-            fontSize: '12px',
-        },
-        'panel': {
-            height: '27em',
-            width: '48em',
-            backgroundColor: '#aa000000',
-            top: '50%',
-            left: '50%',
-            zIndex: '10',
-            position: 'fixed',
-            border: '1px solid #ffffff',
-            display: 'flex',
-            flexFlow: 'column nowrap',
-            userSelect: 'none',
-        },
-        'toolbar': {
-            backgroundColor: '#e7dec633',
-            width: '100%',
-            height: '18px',
-        },
-        'jump': {
-            color: '#00f'
-        },
-        'load': {
-            color: '#00f',
-        },
-        'move': {
-            color: '#00f',
-        },
-        'info': {
-            color: '#000'
-        },
-        'content': {
-            color: '#000000',
-            backgroundColor: '#f7eed633',
-            flex: '1',
-            padding: '0 0.5em',
-            overflow: 'hidden',
-        },
-        'text': {
-            backgroundColor: '#ff000000',
-            position: 'relative',
-        },
-        'fileholder': {
-            display: 'none',
+    const cssText = `
+        .loafing-reader {
+            margin: 0; padding: 0;
+            box-sizing: content-box;
+            font-size: 12px;
+            color: #222;
         }
-    };
+        #lf-panel {
+            height: 27em;
+            width: 48em;
+            background-color: #f000;
+            top: 50%; left: 50%;
+            zIndex: 10;
+            position: fixed;
+            border: 1px solid #fff;
+            display: flex;
+            flex-flow: column nowrap;
+            user-select: none;
+        }
+        #lf-toolbar {
+            background: #aaa3;
+            width: 100%; height: 18px;
+        }
+        .lf-item {
+            padding: 0 0 0 1em;
+        }
+        .lf-btn {
+            color: #00f7;
+        }
+        .lf-btn:hover {
+            color: #00f;
+        }
+        #lf-content {
+            background-color: #fff3;
+            flex: 1;
+            padding: 0 0.5em;
+            overflow: hidden;
+        }
+        #lf-text {
+            background-color: #f000,
+            position: relative;
+        }
+        .lf-hidden {
+            display: none;
+        }
+    `;
 
-    //
     const elements = {};
-    function create(tagName, clazz, id) {
+    function create(tagName, id, ...clazz) {
         const tmp = document.createElement(tagName);
-        if (clazz) tmp.className = clazz;
-        if (id) tmp.id = id;
+        if (id) {
+            tmp.setAttribute('id', 'lf-' + id);
+        }
+        tmp.setAttribute('class', ['loafing-reader', ...(clazz.map(i => 'lf-' + i))].join(' '));
         return tmp;
     }
-    elements.panel = create('div')
-    elements.toolbar = create('div');
-    elements.content = create('div');
-    elements.jump = create('span');
-    elements.load = create('span');
-    elements.move = create('span');
-    elements.info = create('span');
-    elements.fileholder = create('input');
-    elements.text = create('div');
+    elements.panel = create('div', 'panel')
+    elements.toolbar = create('div', 'toolbar');
+    elements.content = create('div', 'content');
+    elements.jump = create('span', 'btn-jump', 'item', 'btn');
+    elements.load = create('span', 'btn-load', 'item', 'btn');
+    elements.move = create('span', 'btn-move', 'item', 'btn');
+    elements.info = create('span', 'span-info', 'item');
+    elements.fileholder = create('input', undefined, 'hidden');
+    elements.text = create('div', 'text');
 
     elements.jump.href = '#'; elements.jump.innerText = '[跳转]';
     elements.load.href = '#'; elements.load.innerText = '[加载]';
@@ -216,6 +212,9 @@
         if (!isNaN(value) && fileInfo.content && fileInfo.length >= value) {
             jump(value);
         }
+        else {
+            alert('输入有误，跳转失败');
+        }
     });
     elements.fileholder.addEventListener('change', function (e) {
         const file = elements.fileholder.files[0];
@@ -254,33 +253,36 @@
         }
     });
 
-    // style sheet
-    for (const ename in elements) {
-        for (const cssname in css) {
-            if (cssname == '*' || cssname === ename) {
-                for (const attribute in css[cssname]) {
-                    elements[ename].style[attribute] = css[cssname][attribute];
-                }
-            }
-        }
-    }
+    GM_addStyle(cssText);
 
     // wake up & sleep
     document.onkeydown = function (event) {
         event = event || window.event
         if (event.shiftKey && (event.key === 'r' || event.key === 'R')) {
-            elements.panel.style.display = css.panel.display;
+            elements.panel.style.visibility = 'visible';
+
+            if (!window.LOAFING_READER_INIT) {
+                init();
+                window.LOAFING_READER_INIT = true;
+                console.log('loafing-reader loaded.')
+            }
+
+            const bookmark = GM_getValue('lf_bookmark');
+            if (bookmark !== fileInfo.bookmark) {
+                jump(bookmark);
+            }
         }
     }
     elements.panel.addEventListener('mouseleave', function (event) {
         if (!moveWindow) {
-            elements.panel.style.display = 'none';
+            elements.panel.style.visibility = 'hidden';
         }
     })
-    elements.panel.style.display = 'none';
+    elements.panel.style.visibility = 'hidden';
 
-    // onload
-    function onload() {
+    // INIT
+    window.LOAFING_READER_INIT = false;
+    function init() {
         const lfFileName = GM_getValue('lf_file_name');
         const lfFileContent = GM_getValue('lf_file_content');
         const lfBookmark = GM_getValue('lf_bookmark', 0);
@@ -292,7 +294,4 @@
             jump(lfBookmark);
         }
     }
-
-    onload();
 })();
-
