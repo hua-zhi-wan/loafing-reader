@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         摸鱼小说阅读器 Loafing-Reader
-// @namespace    http://tampermonkey.net/
+// @namespace    hanayabuki-loafing-reader
 // @version      1.1
 // @description  内嵌浏览器里用来上班摸鱼看小说
 // @author       HanaYabuki
