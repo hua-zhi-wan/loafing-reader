@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         摸鱼小说阅读器 Loafing-Reader
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  内嵌浏览器里用来上班摸鱼看小说
 // @author       HanaYabuki
 // @match        *://*/*
@@ -11,39 +11,53 @@
 // ==/UserScript==
 (function () {
     const cssText = `
+        :root {
+            --lf-color: #222;
+            --lf-toolbar-background-color: #aaa3; 
+            --lf-content-background-color: #fff3;
+            --lf-btn-color: #00a;
+            --lf-btn-color-hover: #00f;
+        }
+        [lf-theme='dark'] {
+            --lf-color: #ddd;
+            --lf-toolbar-background-color: #5553; 
+            --lf-content-background-color: #2223;
+            --lf-btn-color: #aa0;
+            --lf-btn-color-hover: #ff0;
+        }
         .loafing-reader {
             margin: 0; padding: 0;
             box-sizing: content-box;
             font-size: 12px;
-            color: #222;
+            color: var(--lf-color);
         }
         #lf-panel {
             height: 27em;
             width: 48em;
             background-color: #f000;
             top: 50%; left: 50%;
-            zIndex: 10;
+            z-index: 10;
             position: fixed;
-            border: 1px solid #fff;
             display: flex;
             flex-flow: column nowrap;
             user-select: none;
+            backdrop-filter: blur(1px);
         }
         #lf-toolbar {
-            background: #aaa3;
+            background: var(--lf-toolbar-background-color);
             width: 100%; height: 18px;
         }
         .lf-item {
             padding: 0 0 0 1em;
         }
         .lf-btn {
-            color: #00f7;
+            color: var(--lf-btn-color);
         }
         .lf-btn:hover {
-            color: #00f;
+            color: var(--lf-btn-color-hover);
         }
         #lf-content {
-            background-color: #fff3;
+            background-color: var(--lf-content-background-color);
             flex: 1;
             padding: 0 0.5em;
             overflow: hidden;
@@ -58,30 +72,34 @@
     `;
 
     const elements = {};
-    function create(tagName, id, ...clazz) {
+    function ce(tagName, id, children = [], ...clazz) {
         const tmp = document.createElement(tagName);
-        if (id) {
-            tmp.setAttribute('id', 'lf-' + id);
-        }
+        tmp.setAttribute('id', 'lf-' + id);
         tmp.setAttribute('class', ['loafing-reader', ...(clazz.map(i => 'lf-' + i))].join(' '));
-        return tmp;
+        children.forEach(i => tmp.appendChild(i));
+        return elements[id] = tmp;
     }
-    elements.panel = create('div', 'panel')
-    elements.toolbar = create('div', 'toolbar');
-    elements.content = create('div', 'content');
-    elements.jump = create('span', 'btn-jump', 'item', 'btn');
-    elements.load = create('span', 'btn-load', 'item', 'btn');
-    elements.move = create('span', 'btn-move', 'item', 'btn');
-    elements.info = create('span', 'span-info', 'item');
-    elements.fileholder = create('input', undefined, 'hidden');
-    elements.text = create('div', 'text');
+    ce('div', 'panel', [
+        ce('div', 'toolbar', [
+            ce('input', 'fileholder', [], 'hidden'),
+            ce('span', 'jump', [], 'item', 'btn'),
+            ce('span', 'load', [], 'item', 'btn'),
+            ce('span', 'move', [], 'item', 'btn'),
+            ce('span', 'info', [], 'item'),
+            ce('span', 'color', [], 'item', 'btn'),
+        ],),
+        ce('div', 'content', [
+            ce('div', 'text', [])
+        ]),
+    ])
 
-    elements.jump.href = '#'; elements.jump.innerText = '[跳转]';
-    elements.load.href = '#'; elements.load.innerText = '[加载]';
-    elements.move.href = '#'; elements.move.innerText = '[移动]';
+    elements.jump.innerText = '[跳转]';
+    elements.load.innerText = '[加载]';
+    elements.move.innerText = '[移动]';
     elements.fileholder.type = 'file';
     elements.fileholder.accept = '.txt';
     elements.info.innerText = '(无文件)';
+    elements.color.innerText = '[主题]';
 
     document.documentElement.appendChild(elements.panel);
     elements.panel.appendChild(elements.toolbar);
@@ -111,6 +129,15 @@
         jump(0);
     }
 
+    // css
+    GM_addStyle(cssText);
+    const themes = ['light', 'dark'];
+    let themeId = 1;
+    elements.color.addEventListener('click', function () {
+        elements.panel.setAttribute('lf-theme', themes.at(themeId));
+        themeId = (themeId + 1) % themes.length;
+    });
+
     // utils
     function updateInfo() {
         const filename = fileInfo.fileName;
@@ -137,7 +164,7 @@
 
         let i = mark;
         while (i < fileInfo.length && i >= 0 && elements.text.offsetHeight < elements.content.offsetHeight) {
-            const p = create('div');
+            const p = ce('div');
             p.innerHTML = fileInfo.content[i] + '&nbsp;';
             if (direction) {
                 elements.text.appendChild(p);
@@ -151,7 +178,7 @@
                 if (i < 0) {
                     let t = ls.length;
                     while (t < fileInfo.length && elements.text.offsetHeight < elements.content.offsetHeight) {
-                        const p = create('div');
+                        const p = ce('div');
                         p.innerHTML = fileInfo.content[t] + '&nbsp;';
                         elements.text.appendChild(p);
                         ls.push(p);
@@ -252,8 +279,6 @@
             elements.panel.style.top = `calc(50% + ${e.screenY - mouseMemory[1]}px)`;
         }
     });
-
-    GM_addStyle(cssText);
 
     // wake up & sleep
     document.onkeydown = function (event) {
