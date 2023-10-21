@@ -2,6 +2,7 @@
 油猴插件，内嵌浏览器里用来上班摸鱼看小说。
 
 ## 🔍 Github项目
++ 油叉地址：[摸鱼小说阅读器 Loafing-Reader](https://greasyfork.org/zh-CN/scripts/470914-%E6%91%B8%E9%B1%BC%E5%B0%8F%E8%AF%B4%E9%98%85%E8%AF%BB%E5%99%A8-loafing-reader)
 + 仓库链接：[摸鱼小说阅读器: HanaYabuki/loafing-reader](https://github.com/HanaYabuki/loafing-reader)
 + 作者：[HanaYabuki@github](https://github.com/HanaYabuki) | [会唱歌的花枝丸@bilibili](https://www.bilibili.com/)
 
