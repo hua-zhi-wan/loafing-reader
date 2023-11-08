@@ -248,7 +248,7 @@
 
     // events
     elements.jump.addEventListener('click', function (e) {
-        let value = prompt('跳转到？', fileInfo.page);
+        let value = prompt('跳转到？', fileInfo.bookmark);
         value = parseInt(value);
         if (!isNaN(value) && fileInfo.content && fileInfo.length >= value) {
             jump(value);
