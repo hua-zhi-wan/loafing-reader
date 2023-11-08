@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         摸鱼小说阅读器 Loafing-Reader
 // @namespace    hanayabuki-loafing-reader
-// @version      1.1
+// @version      1.2
 // @description  内嵌浏览器里用来上班摸鱼看小说
 // @author       HanaYabuki
 // @match        *://*/*
@@ -69,9 +69,19 @@
         .lf-hidden {
             display: none;
         }
+        #lf-trigger {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(-45deg, transparent 14px, pink 0);
+            z-index: 16777271;
+        }
     `;
 
     const elements = {};
+    // create element
     function ce(tagName, id, children = [], ...clazz) {
         const tmp = document.createElement(tagName);
         tmp.setAttribute('id', 'lf-' + id);
@@ -79,6 +89,7 @@
         children.forEach(i => tmp.appendChild(i));
         return elements[id] = tmp;
     }
+
     ce('div', 'panel', [
         ce('div', 'toolbar', [
             ce('input', 'fileholder', [], 'hidden'),
@@ -91,7 +102,8 @@
         ce('div', 'content', [
             ce('div', 'text', [])
         ]),
-    ])
+    ]);
+    ce('div', 'trigger', [], 'trigger');
 
     elements.jump.innerText = '[跳转]';
     elements.load.innerText = '[加载]';
@@ -102,14 +114,15 @@
     elements.color.innerText = '[主题]';
 
     document.documentElement.appendChild(elements.panel);
-    elements.panel.appendChild(elements.toolbar);
-    elements.panel.appendChild(elements.content);
-    elements.toolbar.appendChild(elements.jump);
-    elements.toolbar.appendChild(elements.load);
-    elements.toolbar.appendChild(elements.move);
-    elements.toolbar.appendChild(elements.info);
-    elements.toolbar.appendChild(elements.fileholder);
-    elements.content.appendChild(elements.text);
+    document.documentElement.appendChild(elements.trigger);
+    // elements.panel.appendChild(elements.toolbar);
+    // elements.panel.appendChild(elements.content);
+    // elements.toolbar.appendChild(elements.jump);
+    // elements.toolbar.appendChild(elements.load);
+    // elements.toolbar.appendChild(elements.move);
+    // elements.toolbar.appendChild(elements.info);
+    // elements.toolbar.appendChild(elements.fileholder);
+    // elements.content.appendChild(elements.text);
 
     // file handle
     const fileInfo = {};
@@ -117,6 +130,7 @@
     function loadFile(filename, content) {
         clear();
         fileInfo.fileName = filename.substring(0, filename.lastIndexOf('.'));
+        
         fileInfo.content = content.split(/(?:\r\n|\n)/)//.filter(s=>/\s*/.test(s));
         fileInfo.length = fileInfo.content.length;
         fileInfo.bookmark = 0;
@@ -234,7 +248,7 @@
 
     // events
     elements.jump.addEventListener('click', function (e) {
-        let value = prompt('跳转到？');
+        let value = prompt('跳转到？', fileInfo.page);
         value = parseInt(value);
         if (!isNaN(value) && fileInfo.content && fileInfo.length >= value) {
             jump(value);
@@ -243,15 +257,17 @@
             alert('输入有误，跳转失败');
         }
     });
+    let charset = "utf-8";
     elements.fileholder.addEventListener('change', function (e) {
         const file = elements.fileholder.files[0];
         const reader = new FileReader();
-        reader.readAsText(file);
+        reader.readAsText(file, charset);
         reader.onload = function () {
             loadFile(file.name, this.result);
         }
     });
     elements.load.addEventListener('click', function (e) {
+        charset = prompt("选择文件编码格式", charset)
         elements.fileholder.click();
     });
     elements.content.addEventListener('contextmenu', function (e) {
@@ -270,40 +286,49 @@
     let mouseMemory = [0, 0];
     let moveWindow = false
     elements.move.addEventListener('mousedown', function (e) {
-        mouseMemory = [e.screenX - mouseMemory[0], e.screenY - mouseMemory[1]];
+        mouseMemory = [e.clientX - mouseMemory[0], e.clientY - mouseMemory[1]];
         moveWindow = !moveWindow;
     });
     document.documentElement.addEventListener('mousemove', function (e) {
         if (moveWindow) {
-            elements.panel.style.left = `calc(50% + ${e.screenX - mouseMemory[0]}px)`;
-            elements.panel.style.top = `calc(50% + ${e.screenY - mouseMemory[1]}px)`;
+            elements.panel.style.left = `calc(50% + ${e.clientX - mouseMemory[0]}px)`;
+            elements.panel.style.top = `calc(50% + ${e.clientY - mouseMemory[1]}px)`;
         }
     });
 
-    // wake up & sleep
+    // wake up & sleep down
     document.onkeydown = function (event) {
         event = event || window.event
-        if (event.shiftKey && (event.key === 'r' || event.key === 'R')) {
-            elements.panel.style.visibility = 'visible';
-
-            if (!window.LOAFING_READER_INIT) {
-                init();
-                window.LOAFING_READER_INIT = true;
-                console.log('loafing-reader loaded.')
-            }
-
-            const bookmark = GM_getValue('lf_bookmark');
-            if (bookmark !== fileInfo.bookmark) {
-                jump(bookmark);
-            }
+        if (event.altKey && (event.key === 'r' || event.key === 'R')) {
+            wakeUp();
         }
     }
     elements.panel.addEventListener('mouseleave', function (event) {
+        sleepDown();
+    })
+    elements.panel.style.visibility = 'hidden';
+    elements.trigger.addEventListener('click', function (event) {
+        wakeUp();
+    })
+
+    function wakeUp() {
+        elements.panel.style.visibility = 'visible';
+        if (!window.LOAFING_READER_INIT) {
+            init();
+            window.LOAFING_READER_INIT = true;
+            console.log('loafing-reader loaded.')
+        }
+        const bookmark = GM_getValue('lf_bookmark');
+        if (bookmark !== fileInfo.bookmark) {
+            jump(bookmark);
+        }
+    }
+
+    function sleepDown() {
         if (!moveWindow) {
             elements.panel.style.visibility = 'hidden';
         }
-    })
-    elements.panel.style.visibility = 'hidden';
+    }
 
     // INIT
     window.LOAFING_READER_INIT = false;
