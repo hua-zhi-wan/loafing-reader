@@ -8,6 +8,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_addStyle
+// @noframes
 // ==/UserScript==
 (function () {
     const cssText = `
