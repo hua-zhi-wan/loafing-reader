@@ -4,7 +4,7 @@
 ## 🔍 Github项目
 + 油叉地址：[摸鱼小说阅读器 Loafing-Reader](https://greasyfork.org/zh-CN/scripts/470914-%E6%91%B8%E9%B1%BC%E5%B0%8F%E8%AF%B4%E9%98%85%E8%AF%BB%E5%99%A8-loafing-reader)
 + 仓库链接：[摸鱼小说阅读器: hua-zhi-wan/loafing-reader](https://github.com/hua-zhi-wan/loafing-reader)
-+ 作者：[hua-zhi-wan@github](https://github.com/hua-zhi-wan) | [会唱歌的花枝丸@bilibili](https://www.bilibili.com/496956009)
++ 作者：[hua-zhi-wan@github](https://github.com/hua-zhi-wan) | [会唱歌的花枝丸@bilibili](https://space.bilibili.com/496956009)
 
 ## 💡 使用说明
 | 操作           | 功能     |
